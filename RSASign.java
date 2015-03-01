@@ -11,7 +11,10 @@ import sun.misc.BASE64Encoder;
 public class RSASign {
 	private PrivateKey privateKey = null;
 
-	RSASign( String privateKeyStr )
+	/**
+	* @param privateKeyStr The private key encoded with base64.
+	*/
+	public RSASign( String privateKeyStr )
 	{
 		try {
 			byte[] privateKeyBytes = new BASE64Decoder().decodeBuffer( privateKeyStr );
@@ -25,6 +28,10 @@ public class RSASign {
 		}
 	}
 
+	/**
+	* @param data The data to be signed.
+	* @return The signature encoded with base64.
+	*/
 	public String sign( byte[] data )
 	{
 		if( privateKey == null )
@@ -33,7 +40,7 @@ public class RSASign {
 		try {
 			Signature sig = Signature.getInstance( "MD5WithRSA" );
 			sig.initSign( privateKey );
-			sig.update(data);
+			sig.update( data );
 			byte[] sigBytes = sig.sign();
 			result = new BASE64Encoder().encode( sigBytes );
 		} catch ( Exception e ) {
