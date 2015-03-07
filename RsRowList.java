@@ -58,4 +58,15 @@ public class RsRowList implements RowList {
 		}
 		return null;
 	}
+
+	@Override
+	public byte[] getBinary( int columnIndex ) {
+		try {
+			return resultSet.getBytes( columnIndex + 1 );
+		} catch ( SQLException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 }
