@@ -1,6 +1,5 @@
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TempCheckInRowList extends CheckIn implements RowList {
@@ -24,12 +23,28 @@ public class TempCheckInRowList extends CheckIn implements RowList {
 
 	private final String location;
 	private int curpos = -1;
-	private List<Row> list = Collections.synchronizedList( new ArrayList<Row>() );
+	private List<Row> list = new ArrayList<Row>();
 
 	public TempCheckInRowList( String privateKeyStr, String publicKeyStr, String l )
 	{
 		super( privateKeyStr, publicKeyStr );
 		location = l;
+	}
+
+	private Row find( String id )
+	{
+		for( Row i : list )
+			if( i.Id.equals( id ) )
+				return i;
+		return null;
+	}
+
+	public boolean delete( String id )
+	{
+		Row r = find( id );
+		if( r == null )
+			return false;
+		return list.remove( r );
 	}
 
 	@Override
@@ -98,9 +113,8 @@ public class TempCheckInRowList extends CheckIn implements RowList {
 	@Override
 	protected boolean writeToDb( String sign, String id, byte[] data )
 	{
-		for( Row i : list )
-			if( i.Id.equals( id ) )
-				return false;
+		if( find( id ) != null )
+			return false;
 		list.add( new Row( sign, id, data ) );
 		return true;
 	}
