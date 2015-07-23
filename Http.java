@@ -1,3 +1,4 @@
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +14,7 @@ public class Http {
 		BufferedReader reader = null;
 
 		try {
-			List<String > res = new ArrayList<String>();
+			List<String> res = new ArrayList<String>();
 			URL url = new URL( urlString );
 			URLConnection connection = url.openConnection();
 			connection.setReadTimeout( 20000 );
@@ -53,5 +54,31 @@ public class Http {
 			out.write( tail );
 			out.write( "\r\n".getBytes() );
 		}
+	}
+
+	private static byte[] nextBlock( BufferedInputStream inputstream ) throws IOException
+	{
+		int len;
+		byte[] tmp = new byte[1024];
+		inputstream.mark( 1024 );
+		len = inputstream.read( tmp );
+		inputstream.reset();
+		String start = new String( tmp, 0, len, "ISO8859-1" );
+		int startpos = start.indexOf( "start:" );
+		if( startpos == -1 )
+			return null;
+		int endpos = start.indexOf( "\r\n", startpos + 6 );
+		if( endpos == -1 )
+			return null;
+		String lenstr = start.substring( startpos + 6, endpos );
+		if( !lenstr.matches( "\\d{1,5}" ) )
+			throw new IOException( "Invalid: \"" + lenstr + "\"" );
+		len = Integer.valueOf( lenstr );
+		byte[] res = new byte[len];
+		inputstream.skip( endpos + 2 );
+		if( inputstream.read( res ) != len )
+			throw new IOException( "Unexpected EOF." );
+
+		return res;
 	}
 }
