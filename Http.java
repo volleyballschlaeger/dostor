@@ -5,10 +5,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Http {
+	private static final Pattern LENPATTERN = Pattern.compile( "start:(\\d{1,5})\r\n" );
+	private static final Charset ASCII = Charset.forName( "US-ASCII" );
+	private static final Charset LATIN1 = Charset.forName( "ISO-8859-1" );
+
 	public static List<String> RecvStringList( String urlString ) throws IOException
 	{
 		BufferedReader reader = null;
@@ -43,7 +50,7 @@ public class Http {
 			StringBuilder sb = new StringBuilder();
 			for( int i = 0; i < colcount - 1; i++ )
 				sb.append( rl.getString( i ) + "\r\n" );
-			byte[] head = sb.toString().getBytes();
+			byte[] head = sb.toString().getBytes( ASCII );
 			byte[] tail = rl.getBinary( colcount - 1 );
 			run = rl.next();
 			if( tail == null )
@@ -62,22 +69,17 @@ public class Http {
 		byte[] tmp = new byte[1024];
 		inputstream.mark( 1024 );
 		len = inputstream.read( tmp );
+		if( len == -1 )
+			return null;
 		inputstream.reset();
-		String start = new String( tmp, 0, len, "ISO8859-1" );
-		int startpos = start.indexOf( "start:" );
-		if( startpos == -1 )
+		Matcher m = LENPATTERN.matcher( new String( tmp, 0, len, LATIN1 ) );
+		if( !m.find() )
 			return null;
-		int endpos = start.indexOf( "\r\n", startpos + 6 );
-		if( endpos == -1 )
-			return null;
-		String lenstr = start.substring( startpos + 6, endpos );
-		if( !lenstr.matches( "\\d{1,5}" ) )
-			throw new IOException( "Invalid: \"" + lenstr + "\"" );
-		len = Integer.valueOf( lenstr );
+		len = Integer.valueOf( m.group( 1 ) );
 		byte[] res = new byte[len];
-		inputstream.skip( endpos + 2 );
+		inputstream.skip( m.end() );
 		if( inputstream.read( res ) != len )
-			throw new IOException( "Unexpected EOF." );
+			throw new IOException( "Unexpected EOF.");
 
 		return res;
 	}
