@@ -79,7 +79,7 @@ public class Http {
 		byte[] res = new byte[len];
 		inputstream.skip( m.end() );
 		if( inputstream.read( res ) != len )
-			throw new IOException( "Unexpected EOF.");
+			throw new IOException( "Unexpected end of stream." );
 
 		return res;
 	}
