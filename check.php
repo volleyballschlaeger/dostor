@@ -7,6 +7,6 @@ function checkId( $id, $data )
 		return FALSE;
 	$md5a = substr( $id, 0, 32 );
 	$md5b = md5( $data );
-	return $md5a == $md5b;
+	return $md5a === $md5b;
 }
 ?>
